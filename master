@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# Colors
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+# Check if we are in a git repo
+git rev-parse --is-inside-work-tree > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+    echo -e "${RED}Error: Not inside a git repository.${NC}"
+    exit 1
+fi
+
+# Check for local changes (modified, staged, or untracked files)
+if [ -n "$(git status --porcelain)" ]; then
+    echo -e "${RED}Warning: You have local changes (including new/untracked files).${NC}"
+    read -p "These will be deleted. Proceed? (y/n): " confirmed
+    if [[ "$confirmed" != "y" && "$confirmed" != "Y" ]]; then
+        echo "Aborted."
+        exit 0
+    fi
+fi
+
+# Fetch the latest from origin
+git fetch origin
+
+# Decide if main branch is called master or main
+if git show-ref --quiet refs/heads/main; then
+    master_branch="main"
+elif git show-ref --quiet refs/heads/master; then
+    master_branch="master"
+else
+    echo -e "${RED}Error: Neither 'main' nor 'master' branch exists.${NC}"
+    exit 1
+fi
+
+# Checkout master/main and hard reset
+if ! git checkout $master_branch; then
+    echo -e "${RED}Failed to checkout $master_branch.${NC}"
+    exit 1
+fi
+if ! git reset --hard origin/$master_branch; then
+    echo -e "${RED}Failed to hard reset to origin/$master_branch.${NC}"
+    exit 1
+fi
+
+# Remove untracked files and directories, but do NOT remove ignored files
+git clean -fd
+
+echo "Workspace cleaned and moved to up-to-date '$master_branch'. All local changes and untracked files (excluding ignored files) have been deleted."
