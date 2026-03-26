@@ -39,3 +39,7 @@ Warning: You have local changes (including new/untracked files).
 These will be deleted. Proceed? (y/n): n
 Aborted.
 ```
+
+## License
+
+This project is licensed under [CC BY-NC 4.0](https://darren-static.waft.dev) - free to use and modify, but no commercial use without permission.
